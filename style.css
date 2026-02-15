@@ -1,0 +1,245 @@
+let current = 0;
+
+const emotions = [
+  "불안", "외로움", "분노", "슬픔",
+  "무기력", "죄책감", "질투", "후회",
+  "두려움", "상처", "혼란", "공허",
+  "스트레스", "좌절", "부끄러움", "압박감"
+];
+
+// 감정별 점수 저장
+let scores = {};
+emotions.forEach(e => scores[e] = 0);
+
+// 질문 데이터 (각 질문은 선택지마다 감정 점수가 올라감)
+const questions = [
+  {
+    q: "요즘 가장 자주 드는 생각은?",
+    options: [
+      { text: "괜히 나만 뒤처지는 느낌이다", emotion: "불안" },
+      { text: "누구랑 있어도 혼자인 것 같다", emotion: "외로움" },
+      { text: "세상이 나한테 너무 불공평하다", emotion: "분노" },
+      { text: "기분이 가라앉고 눈물이 날 것 같다", emotion: "슬픔" }
+    ]
+  },
+  {
+    q: "하루가 끝나면 어떤 기분이야?",
+    options: [
+      { text: "아무것도 하기 싫고 힘이 없다", emotion: "무기력" },
+      { text: "내가 잘못한 것 같아 마음이 무겁다", emotion: "죄책감" },
+      { text: "다른 사람이 부럽고 비교하게 된다", emotion: "질투" },
+      { text: "그때 그 말을 안 했어야 했는데", emotion: "후회" }
+    ]
+  },
+  {
+    q: "사람들과 관계에서 가장 힘든 순간은?",
+    options: [
+      { text: "버려질까봐 불안할 때", emotion: "두려움" },
+      { text: "상대 말이 너무 아프게 꽂힐 때", emotion: "상처" },
+      { text: "내 감정이 뭔지 나도 모르겠을 때", emotion: "혼란" },
+      { text: "마음이 비어있는 느낌이 들 때", emotion: "공허" }
+    ]
+  },
+  {
+    q: "지금 몸 상태는 어떤 편이야?",
+    options: [
+      { text: "머리가 복잡하고 긴장이 안 풀린다", emotion: "스트레스" },
+      { text: "노력해도 잘 안 풀리는 느낌이다", emotion: "좌절" },
+      { text: "내 모습이 초라하게 느껴진다", emotion: "부끄러움" },
+      { text: "뭔가 계속 쫓기는 기분이다", emotion: "압박감" }
+    ]
+  },
+  {
+    q: "요즘 가장 듣고 싶은 말은?",
+    options: [
+      { text: "괜찮아, 잘하고 있어", emotion: "불안" },
+      { text: "너는 혼자가 아니야", emotion: "외로움" },
+      { text: "네 감정은 당연해", emotion: "슬픔" },
+      { text: "너무 참지 않아도 돼", emotion: "분노" }
+    ]
+  },
+  {
+    q: "실수했을 때 내 반응은?",
+    options: [
+      { text: "왜 그랬지… 계속 생각난다", emotion: "후회" },
+      { text: "내가 문제인 것 같아 자책한다", emotion: "죄책감" },
+      { text: "다른 사람은 잘하는데 나는 못한다", emotion: "부끄러움" },
+      { text: "이젠 그냥 포기하고 싶다", emotion: "무기력" }
+    ]
+  },
+  {
+    q: "내가 가장 무서워하는 건?",
+    options: [
+      { text: "미래가 어떻게 될지 모르는 것", emotion: "불안" },
+      { text: "사람들이 나를 떠나는 것", emotion: "두려움" },
+      { text: "내 마음이 점점 비어가는 것", emotion: "공허" },
+      { text: "내가 내 감정을 통제 못하는 것", emotion: "혼란" }
+    ]
+  },
+  {
+    q: "사람들이 나를 오해하면?",
+    options: [
+      { text: "속상해서 마음이 다친다", emotion: "상처" },
+      { text: "화가 치밀어 오른다", emotion: "분노" },
+      { text: "내가 부족해서 그런가 싶다", emotion: "부끄러움" },
+      { text: "내가 뭘 잘못했는지 생각한다", emotion: "죄책감" }
+    ]
+  },
+  {
+    q: "요즘 가장 자주 드는 감정은?",
+    options: [
+      { text: "숨이 막히는 느낌", emotion: "압박감" },
+      { text: "계속 피곤하고 지친 느낌", emotion: "스트레스" },
+      { text: "희망이 사라지는 느낌", emotion: "좌절" },
+      { text: "세상과 연결이 끊긴 느낌", emotion: "외로움" }
+    ]
+  },
+  {
+    q: "지금 필요한 건 뭐라고 생각해?",
+    options: [
+      { text: "휴식과 재충전", emotion: "무기력" },
+      { text: "누군가의 위로", emotion: "슬픔" },
+      { text: "정리할 시간", emotion: "혼란" },
+      { text: "내 마음을 채울 무언가", emotion: "공허" }
+    ]
+  }
+];
+
+// 결과 텍스트 (16가지 감정 전부)
+const results = {
+  "불안": {
+    title: "😿 불안",
+    desc: "지금 당신은 미래에 대한 걱정이 커진 상태예요. 안정감이 필요한 시기일 수 있어요.",
+    tip: "오늘은 '내가 통제할 수 있는 것 3가지'만 적어보세요."
+  },
+  "외로움": {
+    title: "🌙 외로움",
+    desc: "사람들 속에 있어도 마음이 비어있고, 이해받지 못한다고 느끼고 있어요.",
+    tip: "연락하고 싶은 사람 1명에게 짧게라도 메시지를 보내보세요."
+  },
+  "분노": {
+    title: "🔥 분노",
+    desc: "당신은 억울함이나 참아온 감정이 쌓여있어요. 감정은 나쁜 게 아니라 신호예요.",
+    tip: "운동이나 산책으로 몸을 움직여 감정을 배출해보세요."
+  },
+  "슬픔": {
+    title: "💧 슬픔",
+    desc: "마음이 많이 지친 상태예요. 감정을 억누르지 않아도 돼요.",
+    tip: "오늘은 억지로 웃지 말고, 편한 음악을 틀어주세요."
+  },
+  "무기력": {
+    title: "🪫 무기력",
+    desc: "에너지가 떨어져서 아무것도 하고 싶지 않은 상태일 수 있어요.",
+    tip: "오늘은 목표를 '아주 작은 것 1개'로 줄여보세요."
+  },
+  "죄책감": {
+    title: "🖤 죄책감",
+    desc: "스스로를 너무 엄격하게 평가하고 있어요. 당신은 이미 충분히 노력했어요.",
+    tip: "나를 친구처럼 대한다면 어떤 말을 해줄지 적어보세요."
+  },
+  "질투": {
+    title: "🍀 질투",
+    desc: "질투는 당신이 진짜 원하는 걸 보여주는 감정이에요.",
+    tip: "부러운 사람을 보며 '내가 원하는 건 무엇인지' 적어보세요."
+  },
+  "후회": {
+    title: "⏳ 후회",
+    desc: "과거에 대한 생각이 머릿속을 떠나지 않는 상태예요.",
+    tip: "그 순간의 나도 최선을 다했다는 걸 인정해주는 연습이 필요해요."
+  },
+  "두려움": {
+    title: "🫧 두려움",
+    desc: "당신은 상처받을 가능성을 크게 느끼고 있어요. 마음이 경계 모드일 수 있어요.",
+    tip: "지금 나를 안전하게 만드는 것 1가지를 만들어보세요."
+  },
+  "상처": {
+    title: "🩹 상처",
+    desc: "누군가의 말이나 상황이 아직 마음에 남아있어요.",
+    tip: "나를 아프게 한 말을 그대로 적고, 그 옆에 반박문을 써보세요."
+  },
+  "혼란": {
+    title: "🌪 혼란",
+    desc: "생각과 감정이 뒤엉켜서 정리가 되지 않는 상태예요.",
+    tip: "해야 할 일 말고, '내 감정'을 먼저 정리해보는 게 좋아요."
+  },
+  "공허": {
+    title: "🕳 공허",
+    desc: "마음이 텅 빈 느낌이 들고, 뭘 해도 채워지지 않는 상태예요.",
+    tip: "작은 즐거움(간식, 음악, 산책)을 일부러라도 넣어주세요."
+  },
+  "스트레스": {
+    title: "⚡ 스트레스",
+    desc: "신경이 계속 예민하고 긴장 상태가 유지되고 있어요.",
+    tip: "핸드폰을 30분만 내려놓는 것만으로도 회복이 시작돼요."
+  },
+  "좌절": {
+    title: "🥀 좌절",
+    desc: "노력해도 잘 안 풀리는 상황에서 마음이 꺾인 상태예요.",
+    tip: "포기하고 싶은 마음이 들면, 목표를 반으로 줄여보세요."
+  },
+  "부끄러움": {
+    title: "🌸 부끄러움",
+    desc: "자기비교와 자기평가가 강해져서 스스로를 작게 느끼고 있어요.",
+    tip: "내 장점 3가지를 억지로라도 적어보면 생각이 바뀌기 시작해요."
+  },
+  "압박감": {
+    title: "⛓ 압박감",
+    desc: "해야 할 것들이 너무 많고 쫓기는 느낌이 강해요.",
+    tip: "오늘은 '안 해도 되는 것 1개'를 정해서 내려놓아보세요."
+  }
+};
+
+function showQuestion() {
+  document.getElementById("question").innerText = questions[current].q;
+
+  document.getElementById("btn1").innerText = questions[current].options[0].text;
+  document.getElementById("btn2").innerText = questions[current].options[1].text;
+  document.getElementById("btn3").innerText = questions[current].options[2].text;
+  document.getElementById("btn4").innerText = questions[current].options[3].text;
+
+  document.getElementById("progress").innerText =
+    `${current + 1} / ${questions.length}`;
+}
+
+function choose(optionIndex) {
+  const selected = questions[current].options[optionIndex];
+  scores[selected.emotion]++;
+
+  current++;
+
+  if (current < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById("quiz-box").classList.add("hidden");
+  document.getElementById("result-box").classList.remove("hidden");
+
+  let topEmotion = emotions[0];
+
+  emotions.forEach(e => {
+    if (scores[e] > scores[topEmotion]) {
+      topEmotion = e;
+    }
+  });
+
+  document.getElementById("result-title").innerText = results[topEmotion].title;
+  document.getElementById("result-desc").innerText = results[topEmotion].desc;
+  document.getElementById("result-tip").innerText = "💡 추천: " + results[topEmotion].tip;
+}
+
+function restart() {
+  current = 0;
+  emotions.forEach(e => scores[e] = 0);
+
+  document.getElementById("quiz-box").classList.remove("hidden");
+  document.getElementById("result-box").classList.add("hidden");
+
+  showQuestion();
+}
+
+showQuestion();
+
